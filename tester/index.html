@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>Logic-Lang tester</title>
+	<script src="lib/codemirror.js"></script>
+
+	<link href="https://fonts.googleapis.com/css?family=Inconsolata|Roboto" rel="stylesheet">
+
+	<link rel="stylesheet" type="text/css" href="lib/codemirror.min.css" />
+	<link rel="stylesheet" type="text/css" href="lib/codemirror.monokai-theme.css">
+	<script src="../src/logics-grammar.js"></script>
+
+	<style type="text/css">
+		html, body {
+			background-color: #888;
+			font-family: Roboto;
+		}
+
+		#tester-editor {
+			width: 100%;
+			height: 100%;
+		}
+
+		.CodeMirror {
+			height: 100%;
+			font-size: 14px;
+			font-family: Inconsolata;
+			background-color: #333;
+			color: yellow;
+		}
+
+		.CodeMirror-gutters {
+			background-color: #111;
+			color: yellow;
+			border-right: 1px solid #CCC;
+		}
+
+		#editor-wrapper.with-errors .CodeMirror {
+			border: 1px solid #F00;
+			box-shadow: 0 0 7px red;
+		}
+
+		#editor-wrapper.correct .CodeMirror {
+			border: 1px solid #0F0;
+			box-shadow: 0 0 7px #0f0;
+		}
+
+		#editor-wrapper.with-errors #error-message {
+			background-color: #F88;
+			color: black;
+		}
+
+		#editor-wrapper.correct #error-message {
+			background-color: #8f8;
+			color: black;
+		}
+
+		#error-message {
+			padding: 5px;
+		}
+
+		#editor-static-panel {
+			position: fixed;
+			top: 5px;
+			right: 5px;
+			padding: 5px;
+			border: 1px solid #CCC;
+			background-color: #AAA;
+		}
+
+		#editor-input-panel {
+
+		}
+
+		#editor-output-panel {
+			
+		}
+
+	</style>
+
+</head>
+<body>
+
+	<div id="editor-wrapper">
+
+		<div id="editor-input-panel">
+			<h1>Input</h1>
+			<div style="text-align: right; padding-bottom: 5px;">
+				<div style="display:inline-block;">Timeout:</div> <input id="timer" type="number" value="1000" />
+			</div>
+			<div></div>
+			<textarea id="editor-input"></textarea>
+			<pre id="error-message"></pre>
+		</div>
+
+		<div id="editor-output-panel">
+			<h1>Output <button onclick="evaluateOutputCode()">Run</button></h1>
+			<textarea id="editor-output"></textarea>
+		</div>
+
+		<div id="editor-static-panel">
+			<button onclick="showOnlyInputPanel()">Input</button>
+			<button onclick="showOnlyOutputPanel()">Output</button>
+		</div>
+
+	</div>
+
+	<script type="text/javascript">
+
+		function showOnlyInputPanel () {
+			document.getElementById("editor-input-panel").style.display = "block";
+			document.getElementById("editor-output-panel").style.display = "none";
+		};
+
+		function showOnlyOutputPanel () {
+			document.getElementById("editor-input-panel").style.display = "none";
+			document.getElementById("editor-output-panel").style.display = "block";
+		};
+
+		function evaluateOutputCode() {
+			var outputCode = editorOutput.getValue();
+			console.log("Executing code: " + outputCode.length);
+			console.log(eval(outputCode));
+		};
+
+		var editorWrapper = document.getElementById("editor-wrapper");
+
+		var editor = CodeMirror.fromTextArea(document.getElementById("editor-input"), {
+			lineNumbers: true,
+			theme: "monokai"
+		});
+
+		var editorOutput = CodeMirror.fromTextArea(document.getElementById("editor-output"), {
+			lineNumbers: true,
+			theme: "monokai"
+		});
+
+		var lastWasOkay = false;
+		var applyOnChangeEvent = function (cm) {
+			var input = cm.getValue();
+			var output = "";
+			try {
+				output = LogicsLang.parse(input);
+				localStorage.editorContent = input;
+				document.getElementById("error-message").textContent = "OK!";
+				editorWrapper.classList.remove("with-errors");
+				editorWrapper.classList.add("correct");
+				editorOutput.setValue(output);
+			} catch(exc) {
+				lastWasOkay = false;
+				editorWrapper.classList.add("with-errors");
+				editorWrapper.classList.remove("correct");
+				var errMsg = "";
+				if(typeof exc.location !== "object") {
+					errMsg = exc;
+				} else {
+					errMsg = "[ERROR@" 
+						+ exc.location.start.line 
+						+ ":"
+						+ exc.location.start.column 
+						+ " (" 
+						+ exc.location.start.offset 
+						+ ")\nError text:\n"
+						+ input.substr(exc.location.start.offset, exc.location.start.offset + 30);
+				}
+				console.log(exc);
+				console.log(errMsg);
+				document.getElementById("error-message").textContent = errMsg;
+				return;
+			}
+			if(!lastWasOkay) {
+				lastWasOkay = true;
+				console.log("OK!");
+			}
+		};
+		var isEnabledOnChange = true;
+		var onChangeTimeoutId = 0;
+
+		editor.on("change", function(cm) {
+			if(!isEnabledOnChange) {
+				return;
+			}
+			isEnabledOnChange = false;
+			onChangeTimeoutId = setTimeout(function() {
+				isEnabledOnChange = true;
+				applyOnChangeEvent(cm);
+			}, parseInt(document.getElementById("timer").value));
+		});
+		
+		editor.focus();
+
+		editor.setValue(localStorage.editorContent);
+
+	</script>
+
+
+</body>
+</html>
