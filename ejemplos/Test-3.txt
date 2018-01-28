@@ -1,8 +1,10 @@
 ======== INTRODUCCIÓN ================================
 
 Este script es una demostración del lenguaje LogicLang.
-Ahora conio ahora sí que no debería dar problemas para 
-poder hacer cambios dentro de 2 segundos.
+
+Más info en: 
+
+	
 
 ======== AXIOMAS =====================================
 
