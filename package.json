@@ -1,0 +1,30 @@
+{
+  "name": "logics-lang-es",
+  "version": "1.0.0",
+  "description": "Logical Language",
+  "main": "compile.js",
+  "dependencies": {
+    "chokidar": "^2.0.0",
+    "exec-cmd": "^2.0.1",
+    "globby": "^7.1.1",
+    "js-beautify": "^1.7.5",
+    "pegjs": "^0.10.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allnulled/logic-lang.git"
+  },
+  "keywords": [
+    "logic"
+  ],
+  "author": "not-a-business-thing",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/allnulled/logic-lang/issues"
+  },
+  "homepage": "https://github.com/allnulled/logic-lang#readme"
+}
