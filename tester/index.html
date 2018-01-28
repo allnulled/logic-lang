@@ -90,7 +90,188 @@
 				<div style="display:inline-block;">Timeout:</div> <input id="timer" type="number" value="1000" />
 			</div>
 			<div></div>
-			<textarea id="editor-input"></textarea>
+			<textarea id="editor-input">======== INTRODUCCIÓN ================================
+
+Este script es una demostración del lenguaje LogicLang.
+
+Más info en: 
+
+	
+
+======== AXIOMAS =====================================
+
+#* 
+	Bienvenid@ 
+    al 
+    test 
+    de
+    LogicLang
+*#
+
+#############################
+#
+# Ejemplo: Sentencia de asignación de variable:
+#
+#############################
+
+{A} significa {{está lloviendo}} o {{la lluvia cae}}.
+{B} significa {{está haciendo sol}} o {{el sol brilla}}.
+{C} significa {{las calles se mojan}} o {{el suelo moja}}.
+{D} significa {{las calles se secan}} o {{las calles no mojan}}.
+
+======== PROPOSICIONES ===============================
+
+#############################
+#
+# Ejemplo: Axioma:
+#
+#############################
+
+#
+# Ejemplo 1. Axioma simple:
+#
+
+{A}.
+
+#
+# Ejemplo 2. Axioma negado:
+#
+
+No {A}.
+
+#
+# Ejemplo 3. Axioma (expresión extendida):
+# 	- En negación
+# 	- En afirmación
+#
+
+No es verdad {A}.
+No es verdad que {A}.
+Es verdad {A}.
+Es verdad que {A}.
+
+#
+# Ejemplo 4. Axioma mediante sentencia normal:
+# 	- En afirmación
+# 	- En negación
+# 	- En extension (afirmación y negación).
+#
+
+[Si {A} entonces {B}].
+No [si {A} entonces no {B}].
+Es verdad que [si {A} entonces {B}].
+No es verdad que [si {A} entonces {B}].
+
+#
+# Ejemplo 5. Axioma en conjunción.
+#
+
+{A} y {C}.
+{B} y {D}.
+Si {A} y {B} entonces {C} y {D}.
+
+# 
+# Ejemplo 6. Axioma de disyunción.
+#
+
+{A} o {C}.
+{B} o {D}.
+Si {A} o {B} entonces {C} o {D}.
+
+# 
+# Ejemplo 7. Axioma de disyunción excluyente.
+#
+
+O {A} o {C}.
+O {B} o {D}.
+Si o {A} o {B} entonces o {C} o {D}.
+
+#############################
+#
+# Ejemplo: Sentencia de implicación:
+# 
+#############################
+
+#
+# Ejemplo 1. Cuando {proposición} entonces {proposición}.
+#
+
+Cuando {A} entonces necesariamente {C}.
+Cuando {B} entonces necesariamente {D}.
+
+#
+# Ejemplo 2. Si {proposición} entonces {proposición}.
+#
+
+Si {A} entonces necesariamente {C}.
+Si {B} entonces necesariamente {D}.
+
+#
+# Ejemplo 3. {proposición} implica {proposición}.
+#
+
+{A} implica necesariamente {C}.
+{B} implica necesariamente {D}.
+
+#############################
+#
+# Ejemplo: Sentencia de implicación exclusiva:
+#
+#############################
+
+#
+# Ejemplo 1. Cuando {proposición} entonces {proposición}.
+#
+
+Sólo cuando {A} entonces necesariamente {C}.
+Sólo cuando {B} entonces necesariamente {D}.
+
+#
+# Ejemplo 2. Si {proposición} entonces {proposición}.
+#
+
+Sólo si {A} entonces necesariamente {C}.
+Sólo si {B} entonces necesariamente {D}.
+
+#
+# Ejemplo 3. {proposición} implica {proposición}.
+#
+
+Sólo {A} implica necesariamente {C}.
+Sólo {B} implica necesariamente {D}.
+
+#############################
+#
+# Ejemplo: Negación de valor:
+#
+#############################
+
+#
+# Ejemplo 1. No {variable o valor}.
+#
+
+No {A}.
+No {B}.
+
+#
+# Ejemplo 2. No [{proposición}]
+#
+
+No [no {A}].
+No [sólo cuando {A} entonces {C}].
+
+#############################
+#
+# Ejemplo: Proposición como valor:
+#
+#############################
+
+#
+# Ejemplo 1. Proposición como valor:
+#
+
+Sólo si [sólo {A} implica necesariamente {B}] entonces [sólo {B} implica necesariamente {D}].
+</textarea>
 			<pre id="error-message"></pre>
 		</div>
 
