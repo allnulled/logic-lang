@@ -12,7 +12,7 @@ var parserContent;
 try {
 	parserContent = pegjs.generate(grammarContent, {
 		format: "globals",
-		exportVar: "LogicsLang",
+		exportVar: "LogicLang",
 		output: "source"
 	});
 } catch(exc) {
