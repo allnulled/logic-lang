@@ -2860,7 +2860,7 @@
     }
   }
 
-  root.LogicsLang = {
+  root.LogicLang = {
     SyntaxError: peg$SyntaxError,
     parse:       peg$parse
   };
