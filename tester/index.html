@@ -322,7 +322,7 @@ Sólo si [sólo {A} implica necesariamente {B}] entonces [sólo {B} implica nece
 			var input = cm.getValue();
 			var output = "";
 			try {
-				output = LogicsLang.parse(input);
+				output = LogicLang.parse(input);
 				localStorage.editorContent = input;
 				document.getElementById("error-message").textContent = "OK!";
 				editorWrapper.classList.remove("with-errors");
