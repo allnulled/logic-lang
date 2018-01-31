@@ -1,6 +1,13 @@
 Script_partial_for_introduction = 
-	( "="+ _* "INTRODUCCIÓN" _* "="+ Any_space* )
+	opener:( "="+ _* "INTRODUCCIÓN" _* "="+ Any_space* )
 	introduction:(!( "="+ _* "AXIOMAS" _* "="+) .)*
-{
-	return decompose(introduction);
-}
+	{
+		return {
+			location: location(),
+			supertype: "Script",
+			type: "Introduction",
+			components: {
+				introduction: decompose(introduction)
+			}
+		};
+	}

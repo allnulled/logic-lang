@@ -12,6 +12,13 @@ function decompose(data) {
 	return out;
 };
 
+function passToEmptyStringIfObject(data) {
+	if(typeof data === "object") {
+		return '"(Passed to empty string)"';
+	}
+	return data;
+}
+
 var Constants = {};
 
 Constants.implication_sentence_code = [
@@ -75,295 +82,391 @@ var _0x608b=["\xAA\xB5\xBA\xC0\x2D\xD6\xD8\x2D\xF6\xF8\x2D\u02C1\u02C6\x2D\u02D1
 }
 
 Language = 
-  introduction:Script_partial_for_introduction?
-  axioms:Script_partial_for_axioms
-  propositions:Script_partial_for_propositions
-  {
-    var out = "";
-    out += "(function() {\n\n"
-    + "////////////////////////////\n"
-    + "// ---- DEFINICIONES ---- //\n"
-    + "////////////////////////////\n\n"
-    + getSentencesRegistry() 
-    + "///////////////////////\n"
-    + "// ---- AXIOMAS ---- //\n"
-    + "///////////////////////\n\n"
-    + decompose(axioms) 
-    + "\n"
-    + "/////////////////////////////\n"
-    + "// ---- PROPOSICIONES ---- //\n"
-    + "/////////////////////////////\n\n"
-    + decompose(propositions)
-    + "\nreturn LogicLang.resolve();"
-    + "\n\n})();";
-  return js_beautify(out, {
-      indent_size: 4,
-      indent_char: " ",
-      keep_array_indentation: true,
-      brace_style: "compact",
-      preserve_newlines: false
-  });
-
-}
+    introduction:Script_partial_for_introduction?
+    axioms:Script_partial_for_axioms
+    propositions:Script_partial_for_propositions
+    {
+        return JSON.stringify({
+            supertype: "Language",
+            type: "Language",
+            components: {
+                introduction: introduction || null,
+                axioms: axioms,
+                propositions: propositions
+            }
+        }, null, 4);
+    }
 
 
-Any_space = [\n\r\t ] {
-	return text();
-}
+Any_space = [\n\r\t ] 
+	{
+		return text();
+	}
 
 Axiom_nucleus = 
 	negation:(("No" / "no") _)?
-	(("Es" / "es") _ ("verdad") (_ "que")? _)?
+	token1:(("Es" / "es") _ ("verdad") (_ "que")? _)?
 	value:(
 		Value / 
 		Variable /
 		Normal_sentece_as_value
 	)
-{
-	var out = "";
-	registerSentence("Axiom", [
-		"function(data) {",
-		"  // @TODO: axiom",
-		"}"
-	]);
-	out += "LogicLang.Axiom({axiom: " 
-		+ value 
-		+ ",negated: " 
-		+ (negation ? "true" : "false") 
-		+ "})";
-	return out;
-}
+	{
+		if((value.type === "Variable") || (value.type === "Value")) {
+			value.components.hypothetical = false;
+		}
+		return {
+			location: location(),
+			supertype: "Axiom",
+			type: "Nucleus of axiom",
+			components: {
+				negated: (negation ? true : false),
+				value: value
+			}
+		};
+	}
 
-Axiom = 
-	exclusive_disjunction_operator:(("O" / "o") _)?
+Axiom = axiom:(
+		Axiom_for_conjunction /
+		Axiom_for_disjunction /
+		Axiom_for_exclusive_disjunction /
+		Axiom_nucleus
+	)
+	{
+		return axiom;
+	}
+
+Axiom_for_conjunction = 
 	axiom:Axiom_nucleus
 	appendixes:(
-		( _ )
-		( "y" / "o" )
-		( _ )
-		( Axiom_nucleus )
-	)*
-{
-	var out = "";
-	if(!appendixes || appendixes.length === 0) {
-		out += axiom;
-	} else {
-		registerSentence("Composed_axiom", Constants.composed_axiom_code);
-		out += "LogicLang.Composed_axiom({base:" + axiom + ",composition:[";
-		for(var a=0; a<appendixes.length; a++) {
-			var appendix = appendixes[a];
-			var operator = appendix[1];
-			var axiomOperand = appendix[3];
-			if(operator === "y") {
-				operator = "Conjunction";
-			} else if(operator === "o") {
-				operator = "Disjunction";
+		( _ "o" _ )
+		( Axiom )
+	)+
+	{
+		return {
+			location: location(),
+			supertype: "Axiom",
+			type: "Axiom for inclusive disjunction",
+			components: {
+				nucleus: axiom,
+				appendixes: appendixes.map(function(appendix) {
+					return appendix[1];
+				})
 			}
-			if(operator === "Disjunction" && exclusive_disjunction_operator) {
-				operator = "Exclusive_disjunction";
-			}
-			if(a !== 0) {
-				out += ",";
-			}
-			out += "{operator:" + JSON.stringify(operator) + ",operand:" + axiomOperand + "}";
-		}
-		out += "]})";
+		};
 	}
-	return out;
-}
+
+Axiom_for_disjunction = 
+	axiom:Axiom_nucleus
+	appendixes:(
+		( _ "y" _ )
+		( Axiom )
+	)+
+	{
+		return {
+			location: location(),
+			supertype: "Axiom",
+			type: "Axiom for conjunction",
+			components: {
+				nucleus: axiom,
+				appendixes: appendixes.map(function(appendix) {
+					return appendix[1];
+				})
+			}
+		};
+	}
+
+Axiom_for_exclusive_disjunction = 
+	token1:(("O" / "o") _)
+	axiom:Axiom_nucleus
+	appendixes:(
+		( _ "o" _ )
+		( Axiom )
+	)+
+	{
+		return {
+			location: location(),
+			supertype: "Axiom",
+			type: "Axiom for exclusive disjunction",
+			components: {
+				nucleus: axiom,
+				appendixes: appendixes.map(function(appendix) {
+					return appendix[1];
+				})
+			}
+		};
+	}
+
 
 
 Comment_sentence = 
-	"#" 
+	opener:"#" 
 	comment:([^\n]*) 
-	end:Any_space* {
-	registerSentence("Comment", [
-		"function(data) {",
-		"  // @TODO: comment sentence",
-		"}"
-	]);
-	return "LogicLang.Comment("
-		+ JSON.stringify(decompose(comment), null, 4)
-		+ ");"
-		+ decompose(end)
-}
+	end:Any_space* 
+	{
+		return undefined;
+	}
 
-End_of_sentence = "." newline:(Any_space*) {
-	return decompose(newline);
-}
+Enable_debug_sentence = 
+	token1:"Enable debug for " 
+	variable:(
+		( [A-Za-z$_] [A-Za-z0-9$_]* )
+		( "." [A-Za-z$_] [A-Za-z0-9$_]* )* 
+	)
+	{
+		return {
+			location: location(),
+			supertype: "Sentence",
+			type: "Enable debug",
+			components: {
+				holder: decompose(variable)
+			}
+		};
+	}
 
-Exclusive_implication_sentence = sentence:(
+End_of_sentence = 
+	"." 
+	newline:(Any_space*) 
+	{
+		return decompose(newline);
+	}
+
+Exclusive_implication_sentence = 
+	sentence:(
 		Exclusive_implication_sentence_1 / 
 		Exclusive_implication_sentence_2
-	) {
-	return sentence;
-}
+	)
+	{
+		return sentence;
+	}
 
 Exclusive_implication_sentence_1 = 
-	(
+	opener:(
 		(( "Sólo" / "sólo" ) _)
 		(( "cuando" / "si" ) _)
 	)
 	premise:( Axiom )
-	(_ "entonces" (_ "necesariamente" )? _)
+	token1:(_ "entonces" (_ "necesariamente" )? _)
 	implication:( Axiom )
 	{
-	registerSentence("Exclusive_implication_sentence", Constants.exclusive_implication_sentence_code);
-	return "LogicLang.Exclusive_implication_sentence({premise: " + premise + ",implication: " + implication + "})";
-}
+		return {
+			location: location(),
+			supertype: "Sentence",
+			type: "Exclusive implication",
+			premise: premise,
+			implication: implication
+		};
+	}
 
 Exclusive_implication_sentence_2 = 
-	(( "Sólo" / "sólo" ) _)
+	opener:(( "Sólo" / "sólo" ) _)
 	premise:( Axiom )
-	(_ "implica" (_ "necesariamente" )? (_ "que")? _)
+	token1:(_ "implica" (_ "necesariamente" )? (_ "que")? _)
 	implication:( Axiom )
 	{
-	registerSentence("Exclusive_implication_sentence", Constants.exclusive_implication_sentence_code);
-	return "LogicLang.Exclusive_implication_sentence({premise: " + premise + ",implication: " + implication + "})";
-}
+		return {
+			location: location(),
+			supertype: "Sentence",
+			type: "Exclusive implication",
+			premise: premise,
+			implication: implication
+		};
+	}
 
 Full_normal_sentence = 
 	sentence:Normal_sentence 
-	end:End_of_sentence {
-  return sentence + ";" + end;
-}
+	end:End_of_sentence 
+	{
+		return sentence;
+	}
 
-Full_sentence = sentence:(
-	Full_normal_sentence /
-	Full_special_sentence
-  ) { 
-  return sentence;
-}
+Full_sentence = 
+	sentence:(
+		Full_normal_sentence /
+		Full_special_sentence
+	)
+	{ 
+		return sentence;
+	}
 
 Full_special_sentence = 
 	sentence:Special_sentence {
   return sentence;
 }
 
-Implication_sentence = sentence:(
+Implication_sentence = 
+	sentence:(
 		Implication_sentence_1 / 
 		Implication_sentence_2
-	) {
-	return sentence;
-}
+	)
+	{
+		return sentence;
+	}
 
 Implication_sentence_1 = 
-	(( "Cuando" / "cuando" / "Si" / "si" ) _) 
+	token1:(( "Cuando" / "cuando" / "Si" / "si" ) _) 
 	premise:( Axiom )
-	(_ "entonces" (_ "necesariamente" )? _)
+	token2:(_ "entonces" (_ "necesariamente" )? _)
 	implication:( Axiom )
 	{
-	registerSentence("Implication_sentence", Constants.implication_sentence_code);
-	return "LogicLang.Implication_sentence({premise: " + premise + ",implication: " + implication + "})";
-}
+		return {
+			location: location(),
+			supertype: "Sentence",
+			type: "Implication",
+			components: {
+				premise: premise,
+				implication: implication
+			}
+		};
+	}
 
 Implication_sentence_2 = 
 	premise:( Axiom )
-	(_ "implica" (_ "necesariamente" )? (_ "que")? _)
+	token1:(_ "implica" (_ "necesariamente" )? (_ "que")? _)
 	implication:( Axiom )
 	{
-	registerSentence("Implication_sentence", Constants.implication_sentence_code);
-	return "LogicLang.Implication_sentence({premise: " + premise + ",implication: " + implication + "})";
-}
+		return {
+			location: location(),
+			supertype: "Sentence",
+			type: "Implication",
+			components: {
+				premise: premise,
+				implication: implication
+			}
+		};
+	}
 
 Multiline_comment_sentence = 
-	"#*" 
-	comment:(! "*#" .)* "*#" 
-	end:Any_space* {
-	registerSentence("Multiline_comment_sentence", [
-		"function(data) {",
-		"  // @TODO: exclusive implication sentence",
-		"}"
-	]);
-  	return "LogicLang.Multiline_comment_sentence(" + JSON.stringify(decompose(comment), null, 4) + ");" + decompose(end);
-}
+	opener:"#*" 
+	comment:(! "*#" .)* 
+	closer:"*#" 
+	end:Any_space* 
+	{
+		return undefined;
+	}
 
 Normal_sentence = 
 	sentence:(
 		Variable_assignation_sentence /
 		Exclusive_implication_sentence /
 		Implication_sentence /
+		Enable_debug_sentence /
 		Axiom
-   	) {
-  return sentence;
-}
+   	) 
+   	{
+		return sentence;
+	}
 
 Normal_sentece_as_value =
-	( "[" Any_space* )
+	opener:( "[" Any_space* )
 	sentence:( Normal_sentence )
-	( Any_space* "]" )
+	closer:( Any_space* "]" )
 	{
-	return sentence;
-}
+		return sentence;
+	}
 
 Script_partial_for_axioms = 
-	( "="+ _* "AXIOMAS" _* "="+ Any_space* )
+	opener:( "="+ _* "AXIOMAS" _* "="+ Any_space* )
 	axioms:(Full_sentence)*
-	Any_space*
-{
-	return decompose(axioms);
-}
+	closer:Any_space*
+	{
+		return {
+			location: location(),
+			supertype: "Script",
+			type: "Axioms script",
+			components: axioms.filter(function(item) {
+				return typeof item !== "undefined";
+			})
+		};
+	}
 
 Script_partial_for_introduction = 
-	( "="+ _* "INTRODUCCIÓN" _* "="+ Any_space* )
+	opener:( "="+ _* "INTRODUCCIÓN" _* "="+ Any_space* )
 	introduction:(!( "="+ _* "AXIOMAS" _* "="+) .)*
-{
-	return decompose(introduction);
-}
+	{
+		return {
+			location: location(),
+			supertype: "Script",
+			type: "Introduction",
+			components: {
+				introduction: decompose(introduction)
+			}
+		};
+	}
 
 Script_partial_for_propositions = 
-	( "="+ _* "PROPOSICIONES" _* "="+ Any_space* )
+	opener:( "="+ _* "PROPOSICIONES" _* "="+ Any_space* )
 	propositions:(Full_sentence)*
-	Any_space*
-{
-	return decompose(propositions);
-}
+	closer:Any_space*
+	{
+		return {
+			location: location(),
+			supertype: "Script",
+			type: "Propositions",
+			components: {
+				propositions: propositions.filter(function(item) {
+					return typeof item !== "undefined";
+				})
+			}
+		};
+	}
 
 _ = " " {}
 
-Special_sentence = sentence:(
-	Multiline_comment_sentence /
-	Comment_sentence
-  ) {
-  return sentence;
-}
+Special_sentence = 
+	sentence:(
+		Multiline_comment_sentence /
+		Comment_sentence
+	) 
+	{
+		return sentence;
+	}
 
 Value = 
-	( "{{" )
+	opener:( "{{" )
 	value:(! "}}" .)+ 
-	( "}}" )
+	closer:( "}}" )
 	{
-	registerSentence("Value", [
-		"function(data) {",
-		"  // @TODO: value function",
-		"}"
-	]);
-  	return "LogicLang.Value(" + JSON.stringify(decompose(value)) + ")";
-}
+		return {
+			location: location(),
+			supertype: "Atom",
+			type: "Value",
+			components: {
+					hypothetical: true,
+				value: decompose(value)
+			}
+		};
+	}
 
-Variable_assignation_sentence = 
-  variabl:( Axiom )
-  (_ "significa" _)
-  ("que" _)? 
-  value:( Axiom ) 
+Variable_assignation_sentence =
+  variablee:(Variable)
+  token1:(_ "significa" _)
+  token2:("que" _)?
+  value:(Axiom) 
   {
-    registerSentence("Variable_assignation_sentence", [
-      "function(variable, value) {",
-      "  // @TODO: variable assignation sentence",
-      "}"
-    ]);
-    return "LogicLang.Variable_assignation_sentence({variable: " + variabl + ",value: " + value + "})";
-}
+      return {
+          location: location(),
+          supertype: "Sentence",
+          type: "Variable Assignation",
+          components: {
+              name: variablee,
+              value: value
+          }
+      };
+  }
 
 Variable = 
-	( "{" )
-	variabl:([^\}]+) 
-	( "}" )
+	opener:( "{" )
+	variablee:([^\}]+) 
+	closer:( "}" )
 	{
-	registerSentence("Variable", [
-		"function(data) {",
-		"  // @TODO: variable function",
-		"}"
-	]);
-  	return "LogicLang.Variable(" + JSON.stringify(decompose(variabl), null, 4) + ")";
-}
+		return {
+			location: location(),
+			supertype: "Atom",
+			type: "Variable",
+			components: {
+				hypothetical: true,
+				value: decompose(variablee)
+			}
+		};
+	}

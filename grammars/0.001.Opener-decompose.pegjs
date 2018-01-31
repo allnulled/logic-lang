@@ -9,3 +9,10 @@ function decompose(data) {
 	};
 	return out;
 };
+
+function passToEmptyStringIfObject(data) {
+	if(typeof data === "object") {
+		return '"(Passed to empty string)"';
+	}
+	return data;
+}

@@ -1,12 +1,15 @@
 Variable = 
-	( "{" )
-	variabl:([^\}]+) 
-	( "}" )
+	opener:( "{" )
+	variablee:([^\}]+) 
+	closer:( "}" )
 	{
-	registerSentence("Variable", [
-		"function(data) {",
-		"  // @TODO: variable function",
-		"}"
-	]);
-  	return "LogicLang.Variable(" + JSON.stringify(decompose(variabl), null, 4) + ")";
-}
+		return {
+			location: location(),
+			supertype: "Atom",
+			type: "Variable",
+			components: {
+				hypothetical: true,
+				value: decompose(variablee)
+			}
+		};
+	}

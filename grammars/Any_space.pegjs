@@ -1,3 +1,4 @@
-Any_space = [\n\r\t ] {
-	return text();
-}
+Any_space = [\n\r\t ] 
+	{
+		return text();
+	}

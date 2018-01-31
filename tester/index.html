@@ -16,7 +16,9 @@
 			background-color: #888;
 			font-family: Roboto;
 		}
-
+		a {
+			text-decoration: none;
+		}
 		#tester-editor {
 			width: 100%;
 			height: 100%;
@@ -27,13 +29,13 @@
 			font-size: 14px;
 			font-family: Inconsolata;
 			background-color: #333;
-			color: yellow;
+			color: yellow !important;
 		}
 
 		.CodeMirror-gutters {
 			background-color: #111;
 			color: yellow;
-			border-right: 1px solid #CCC;
+			border-right: 1px solid #CCC !important;
 		}
 
 		#editor-wrapper.with-errors .CodeMirror {
@@ -108,16 +110,20 @@ Más info en:
     LogicLang
 *#
 
+# Habilitar debugging:
+
+Enable debug for window.LL.
+
 #############################
 #
 # Ejemplo: Sentencia de asignación de variable:
 #
 #############################
 
-{A} significa {{está lloviendo}} o {{la lluvia cae}}.
-{B} significa {{está haciendo sol}} o {{el sol brilla}}.
-{C} significa {{las calles se mojan}} o {{el suelo moja}}.
-{D} significa {{las calles se secan}} o {{las calles no mojan}}.
+{A} significa {{está lloviendo}}.
+{B} significa {{está haciendo sol}}.
+{C} significa {{las calles se mojan}}.
+{D} significa {{las calles se secan}}.
 
 ======== PROPOSICIONES ===============================
 
@@ -275,14 +281,19 @@ Sólo si [sólo {A} implica necesariamente {B}] entonces [sólo {B} implica nece
 			<pre id="error-message"></pre>
 		</div>
 
-		<div id="editor-output-panel">
+		<div id="editor-output-panel" style="min-height: 800px;">
 			<h1>Output <button onclick="evaluateOutputCode()">Run</button></h1>
 			<textarea id="editor-output"></textarea>
 		</div>
 
-		<div id="editor-static-panel">
-			<button onclick="showOnlyInputPanel()">Input</button>
-			<button onclick="showOnlyOutputPanel()">Output</button>
+		<div id="editor-static-panel" style="z-index:1000;">
+			<a href="#editor-input-panel">
+				<button onclick="">Input</button>
+			</a>
+			<a href="#editor-output-panel">
+				<button onclick="">Output</button>
+			</a>
+			<button onclick="evaluateOutputCode()">Run</button></h1>
 		</div>
 
 	</div>
@@ -371,7 +382,9 @@ Sólo si [sólo {A} implica necesariamente {B}] entonces [sólo {B} implica nece
 		
 		editor.focus();
 
-		editor.setValue(localStorage.editorContent);
+		setTimeout(function() {
+			editor.setValue(localStorage.editorContent || editor.getValue());
+		}, 1500);
 
 	</script>
 

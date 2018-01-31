@@ -1,29 +1,41 @@
-Exclusive_implication_sentence = sentence:(
+Exclusive_implication_sentence = 
+	sentence:(
 		Exclusive_implication_sentence_1 / 
 		Exclusive_implication_sentence_2
-	) {
-	return sentence;
-}
+	)
+	{
+		return sentence;
+	}
 
 Exclusive_implication_sentence_1 = 
-	(
+	opener:(
 		(( "Sólo" / "sólo" ) _)
 		(( "cuando" / "si" ) _)
 	)
 	premise:( Axiom )
-	(_ "entonces" (_ "necesariamente" )? _)
+	token1:(_ "entonces" (_ "necesariamente" )? _)
 	implication:( Axiom )
 	{
-	registerSentence("Exclusive_implication_sentence", Constants.exclusive_implication_sentence_code);
-	return "LogicLang.Exclusive_implication_sentence({premise: " + premise + ",implication: " + implication + "})";
-}
+		return {
+			location: location(),
+			supertype: "Sentence",
+			type: "Exclusive implication",
+			premise: premise,
+			implication: implication
+		};
+	}
 
 Exclusive_implication_sentence_2 = 
-	(( "Sólo" / "sólo" ) _)
+	opener:(( "Sólo" / "sólo" ) _)
 	premise:( Axiom )
-	(_ "implica" (_ "necesariamente" )? (_ "que")? _)
+	token1:(_ "implica" (_ "necesariamente" )? (_ "que")? _)
 	implication:( Axiom )
 	{
-	registerSentence("Exclusive_implication_sentence", Constants.exclusive_implication_sentence_code);
-	return "LogicLang.Exclusive_implication_sentence({premise: " + premise + ",implication: " + implication + "})";
-}
+		return {
+			location: location(),
+			supertype: "Sentence",
+			type: "Exclusive implication",
+			premise: premise,
+			implication: implication
+		};
+	}

@@ -1,12 +1,15 @@
 Value = 
-	( "{{" )
+	opener:( "{{" )
 	value:(! "}}" .)+ 
-	( "}}" )
+	closer:( "}}" )
 	{
-	registerSentence("Value", [
-		"function(data) {",
-		"  // @TODO: value function",
-		"}"
-	]);
-  	return "LogicLang.Value(" + JSON.stringify(decompose(value)) + ")";
-}
+		return {
+			location: location(),
+			supertype: "Atom",
+			type: "Value",
+			components: {
+					hypothetical: true,
+				value: decompose(value)
+			}
+		};
+	}

@@ -1,7 +1,14 @@
 Script_partial_for_axioms = 
-	( "="+ _* "AXIOMAS" _* "="+ Any_space* )
+	opener:( "="+ _* "AXIOMAS" _* "="+ Any_space* )
 	axioms:(Full_sentence)*
-	Any_space*
-{
-	return decompose(axioms);
-}
+	closer:Any_space*
+	{
+		return {
+			location: location(),
+			supertype: "Script",
+			type: "Axioms script",
+			components: axioms.filter(function(item) {
+				return typeof item !== "undefined";
+			})
+		};
+	}

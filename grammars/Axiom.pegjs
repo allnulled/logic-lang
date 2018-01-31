@@ -1,60 +1,94 @@
 Axiom_nucleus = 
 	negation:(("No" / "no") _)?
-	(("Es" / "es") _ ("verdad") (_ "que")? _)?
+	token1:(("Es" / "es") _ ("verdad") (_ "que")? _)?
 	value:(
 		Value / 
 		Variable /
 		Normal_sentece_as_value
 	)
-{
-	var out = "";
-	registerSentence("Axiom", [
-		"function(data) {",
-		"  // @TODO: axiom",
-		"}"
-	]);
-	out += "LogicLang.Axiom({axiom: " 
-		+ value 
-		+ ",negated: " 
-		+ (negation ? "true" : "false") 
-		+ "})";
-	return out;
-}
+	{
+		if((value.type === "Variable") || (value.type === "Value")) {
+			value.components.hypothetical = false;
+		}
+		return {
+			location: location(),
+			supertype: "Axiom",
+			type: "Nucleus of axiom",
+			components: {
+				negated: (negation ? true : false),
+				value: value
+			}
+		};
+	}
 
-Axiom = 
-	exclusive_disjunction_operator:(("O" / "o") _)?
+Axiom = axiom:(
+		Axiom_for_conjunction /
+		Axiom_for_disjunction /
+		Axiom_for_exclusive_disjunction /
+		Axiom_nucleus
+	)
+	{
+		return axiom;
+	}
+
+Axiom_for_conjunction = 
 	axiom:Axiom_nucleus
 	appendixes:(
-		( _ )
-		( "y" / "o" )
-		( _ )
-		( Axiom_nucleus )
-	)*
-{
-	var out = "";
-	if(!appendixes || appendixes.length === 0) {
-		out += axiom;
-	} else {
-		registerSentence("Composed_axiom", Constants.composed_axiom_code);
-		out += "LogicLang.Composed_axiom({base:" + axiom + ",composition:[";
-		for(var a=0; a<appendixes.length; a++) {
-			var appendix = appendixes[a];
-			var operator = appendix[1];
-			var axiomOperand = appendix[3];
-			if(operator === "y") {
-				operator = "Conjunction";
-			} else if(operator === "o") {
-				operator = "Disjunction";
+		( _ "o" _ )
+		( Axiom )
+	)+
+	{
+		return {
+			location: location(),
+			supertype: "Axiom",
+			type: "Axiom for inclusive disjunction",
+			components: {
+				nucleus: axiom,
+				appendixes: appendixes.map(function(appendix) {
+					return appendix[1];
+				})
 			}
-			if(operator === "Disjunction" && exclusive_disjunction_operator) {
-				operator = "Exclusive_disjunction";
-			}
-			if(a !== 0) {
-				out += ",";
-			}
-			out += "{operator:" + JSON.stringify(operator) + ",operand:" + axiomOperand + "}";
-		}
-		out += "]})";
+		};
 	}
-	return out;
-}
+
+Axiom_for_disjunction = 
+	axiom:Axiom_nucleus
+	appendixes:(
+		( _ "y" _ )
+		( Axiom )
+	)+
+	{
+		return {
+			location: location(),
+			supertype: "Axiom",
+			type: "Axiom for conjunction",
+			components: {
+				nucleus: axiom,
+				appendixes: appendixes.map(function(appendix) {
+					return appendix[1];
+				})
+			}
+		};
+	}
+
+Axiom_for_exclusive_disjunction = 
+	token1:(("O" / "o") _)
+	axiom:Axiom_nucleus
+	appendixes:(
+		( _ "o" _ )
+		( Axiom )
+	)+
+	{
+		return {
+			location: location(),
+			supertype: "Axiom",
+			type: "Axiom for exclusive disjunction",
+			components: {
+				nucleus: axiom,
+				appendixes: appendixes.map(function(appendix) {
+					return appendix[1];
+				})
+			}
+		};
+	}
+

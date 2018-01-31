@@ -1,13 +1,16 @@
-Variable_assignation_sentence = 
-  variabl:( Axiom )
-  (_ "significa" _)
-  ("que" _)? 
-  value:( Axiom ) 
+Variable_assignation_sentence =
+  variablee:(Variable)
+  token1:(_ "significa" _)
+  token2:("que" _)?
+  value:(Axiom) 
   {
-    registerSentence("Variable_assignation_sentence", [
-      "function(variable, value) {",
-      "  // @TODO: variable assignation sentence",
-      "}"
-    ]);
-    return "LogicLang.Variable_assignation_sentence({variable: " + variabl + ",value: " + value + "})";
-}
+      return {
+          location: location(),
+          supertype: "Sentence",
+          type: "Variable Assignation",
+          components: {
+              name: variablee,
+              value: value
+          }
+      };
+  }

@@ -1,7 +1,16 @@
 Script_partial_for_propositions = 
-	( "="+ _* "PROPOSICIONES" _* "="+ Any_space* )
+	opener:( "="+ _* "PROPOSICIONES" _* "="+ Any_space* )
 	propositions:(Full_sentence)*
-	Any_space*
-{
-	return decompose(propositions);
-}
+	closer:Any_space*
+	{
+		return {
+			location: location(),
+			supertype: "Script",
+			type: "Propositions",
+			components: {
+				propositions: propositions.filter(function(item) {
+					return typeof item !== "undefined";
+				})
+			}
+		};
+	}
